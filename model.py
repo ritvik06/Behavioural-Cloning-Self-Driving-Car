@@ -229,13 +229,14 @@ def main():
 #     print(len(pipeline.training_samples))
 #     print(len(pipeline.validation_samples))
     pipeline.run()
-#     with open('weights.txt', 'w') as f:
-#         for item in self.model.get_weights:
-#             f.write("%s\n" % item)
+    with open('weights.txt', 'w') as f:
+        for item in self.model.get_weights:
+            f.write("%s\n" % item)
     
     
 if __name__ == '__main__':   
     main()
+    
 
 
     

@@ -3,7 +3,7 @@ import cv2
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Flatten,Dense
-from keras.layers import Convolution2D,Lambda
+from keras.layers import Convolution2D,Lambda,Cropping2D
 from keras.layers import Activation,BatchNormalization
 import argparse
 from sklearn.utils import shuffle
@@ -14,7 +14,10 @@ def network():
     model = Sequential()
 
     # Normalization Layer
-    model.add(Lambda(lambda x: (x / 127.5) - 1., input_shape=(160, 320, 3)))
+    model.add(Lambda(lambda x: (x / 127.5) - 1., input_shape=(70, 160, 3)))
+      
+#     # trim image to only see section with road
+#     model.add(Cropping2D(cropping=((70,25),(0,0)))) 
 
     # Convolutional Layer 1
     model.add(Convolution2D(filters=24, kernel_size=5, strides=(2, 2)))
@@ -98,23 +101,53 @@ class TopLevel:
 
     #data augmentation tactics
 
-    def bgr2rgb(image):
+    def bgr2rgb(self,image):
         return cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
 
-    def crop(image):
+    def crop(self,image):
         cropped = image[ 60:130, :]
         return cv2.resize(cropped,(160,70))
 
-    def flip(image):
+    def flip(self,image):
         return cv2.flip(image,1)
+    
+    def resize(self,image, shape=(160, 70)):
+        return cv2.resize(image, shape)
+    
+    def crop_resize(self,image):
+        cropp = self.crop(image)
+        resized = self.resize(cropp)
+        return resized
+    
+#     def process_image(self,batch_sample):
+    #         steering_angle = np.float32(batch_sample[)
+#         images, steering_angles = [][]
+
+#         for image_path_index in rae(3):
+#             image_name = batch_sample[image_path_index].split(')[-1]
+
+#             image = cv2.imread(self.image_path + age_name)
+#             rgb_image = self.b2rgb(image)
+#             resized = self.crop_rese(rgb_image)
+
+#             imagesppend(resized)
+
+#             if ima_path_index == 1:
+#                 steering_angles.append(steering_angle + se.correction_factor)
+#             elifmage_path_index == 2:
+#                 steering_angles.append(steering_angle self.correction_ctor)
+#             else:
+#                 steering_ales.append(steering_angle)
+
+#           if image_path_index == 0:
+#                 flipped_nter_image = self.flip(resized)
+#                 ages.append(flipped_center_image)
+#                 steering_angles.appd(-steering_angle)
+                
+#         return images, steering_angles
+        
 
     #top level for augmentation
-
-    #make function later after checking accuracy of existing data
-
-    # def process(self,batch):
-    #     str_angle = np.float32(batch[3])
-    #     images,str_angles = [],[]
 
     def generator(self, samples, batch_size=128):
         num_samples = len(samples)
@@ -126,13 +159,37 @@ class TopLevel:
                 images = []
                 angles = []
                 for batch_sample in batch_samples:
-                    name = '/home/workspace/CarND-Behavioral-Cloning-P3/data/IMG/'+batch_sample[0].split('/')[-1]
-                    center_image = cv2.imread(name)
-                    center_angle = float(batch_sample[3])
-                    images.append(center_image)
-                    angles.append(center_angle)
-                    
+                    for i in range(0,3): #we are taking 3 images, first one is center, second is left and third is right
+                        
+                        name = './data/IMG/'+batch_sample[i].split('/')[-1]
+                        center_image = cv2.cvtColor(cv2.imread(name), cv2.COLOR_BGR2RGB) #since CV2 reads an image in BGR we need to convert it to RGB since in drive.py it is RGB
+                        center_angle = float(batch_sample[3]) #getting the steering angle measurement
+                        images.append(self.crop_resize(center_image))
+                        
 
+                        
+                        # introducing correction for left and right images
+                        # if image is in left we increase the steering angle by 0.2
+                        # if image is in right we decrease the steering angle by 0.2
+                        
+                        if(i==0):
+                            angles.append(center_angle)
+                        elif(i==1):
+                            angles.append(center_angle+0.2)
+                        elif(i==2):
+                            angles.append(center_angle-0.2)
+                        
+                        # Code for Augmentation of data.
+                        # We take the image and just flip it and negate the measurement
+                        
+                        images.append(self.crop_resize(cv2.flip(center_image,1)))
+                        if(i==0):
+                            angles.append(center_angle*-1)
+                        elif(i==1):
+                            angles.append((center_angle+0.2)*-1)
+                        elif(i==2):
+                            angles.append((center_angle-0.2)*-1)
+#here we got 6 images from one image  
                 # trim image to only see section with road
                 X_train = np.array(images)
                 y_train = np.array(angles)
@@ -164,14 +221,17 @@ def main():
     args = parser.parse_args()
 
     # Instantiate the pipeline
-    pipeline = TopLevel(model=network(), base_path=args.data_base_path, epoch_count=2)
+    pipeline = TopLevel(model=network(), base_path=args.data_base_path, epoch_count=4)
     pipeline.read_data()
     pipeline.split_data(split_ratio=0.2)
 #     print(len(pipeline.training_samples))
 #     print(len(pipeline.validation_samples))
-    print(len(pipeline.training_samples))
-    print(len(pipeline.validation_samples))
+#     print(len(pipeline.training_samples))
+#     print(len(pipeline.validation_samples))
     pipeline.run()
+#     with open('weights.txt', 'w') as f:
+#         for item in self.model.get_weights:
+#             f.write("%s\n" % item)
     
     
 if __name__ == '__main__':   

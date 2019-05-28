@@ -221,7 +221,7 @@ def main():
     args = parser.parse_args()
 
     # Instantiate the pipeline
-    pipeline = TopLevel(model=network(), base_path=args.data_base_path, epoch_count=4)
+    pipeline = TopLevel(model=network(), base_path=args.data_base_path, epoch_count=2)
     pipeline.read_data()
     pipeline.split_data(split_ratio=0.2)
 #     print(len(pipeline.training_samples))
@@ -242,4 +242,5 @@ if __name__ == '__main__':
     
     
     
+
 

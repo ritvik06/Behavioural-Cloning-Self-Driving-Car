@@ -230,7 +230,7 @@ def main():
 #     print(len(pipeline.validation_samples))
     pipeline.run()
     with open('weights.txt', 'w') as f:
-        for item in self.model.get_weights:
+        for item in pipeline.model.get_weights:
             f.write("%s\n" % item)
     
     

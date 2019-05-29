@@ -221,7 +221,7 @@ def main():
     args = parser.parse_args()
 
     # Instantiate the pipeline
-    pipeline = TopLevel(model=network(), base_path=args.data_base_path, epoch_count=2)
+    pipeline = TopLevel(model=network(), base_path=args.data_base_path, epoch_count=3)
     pipeline.read_data()
     pipeline.split_data(split_ratio=0.2)
 #     print(len(pipeline.training_samples))
@@ -229,10 +229,7 @@ def main():
 #     print(len(pipeline.training_samples))
 #     print(len(pipeline.validation_samples))
     pipeline.run()
-    with open('weights.txt', 'w') as f:
-        for item in pipeline.model.get_weights:
-            f.write("%s\n" % item)
-    
+    print(pipeline.model.get_weights()) 
     
 if __name__ == '__main__':   
     main()

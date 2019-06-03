@@ -5,6 +5,7 @@ import numpy as np
 a = []
 
 model = load_model('./model.h5')
-a=model.get_weights()
-A = np.array(a)
-np.save('weights.npy',A)
+for i in range(27):
+	a.append(model.layers[i].get_weights())
+np.save('driving_weights.npy',a)
+
